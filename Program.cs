@@ -1,6 +1,7 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Web.Resource;
 using ProductManagerApi;
+using ProductManagerApi.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +13,8 @@ builder.Services.AddDbContext<ProductManagerApiContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("default"));
 });
 var app = builder.Build();
+app.UseMiddleware<BasicAuthMiddleware>();
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -21,17 +24,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-var scopeRequiredByApi = app.Configuration["AzureAd:Scopes"] ?? "";
 var summaries = new[]
 {
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
 };
-
 app.MapGet("/weatherforecast", (HttpContext httpContext) =>
     {
-        httpContext.VerifyUserHasAnyAcceptedScope(scopeRequiredByApi);
-
         var forecast = Enumerable.Range(1, 5).Select(index =>
                 new WeatherForecast
                 (
@@ -42,9 +40,8 @@ app.MapGet("/weatherforecast", (HttpContext httpContext) =>
             .ToArray();
         return forecast;
     })
-    .WithName("GetWeatherForecast")
-    .WithOpenApi()
-    .RequireAuthorization();
+    .WithName("GetWeatherForecast");
+    // .RequireAuthorization();
 
 app.Run();
 
