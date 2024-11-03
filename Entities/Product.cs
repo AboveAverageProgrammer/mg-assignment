@@ -21,6 +21,6 @@ public class Product
     public string Description { get; set; }
     [Column(TypeName = "timestamp")]
     public DateTime DateCreated { get; set; } = new();
-    [Timestamp]
+    [Timestamp] // For concurrency check
     public byte[] RowVersion { get; set; }
 }

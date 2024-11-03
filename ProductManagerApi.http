@@ -1,6 +1,15 @@
-@ProductManagerApi_HostAddress = http://localhost:5169
+@ProductManagerApi_HostAddress = https://localhost:7067/api/v1
+@ProductManagerApi_BasicAuth=Basic YWRtaW46YWRtaW4=
 
-GET {{ProductManagerApi_HostAddress}}/weatherforecast/
+### must return 200
+GET {{ProductManagerApi_HostAddress}}/public/
 Accept: application/json
 
-###
+### must return 401
+GET {{ProductManagerApi_HostAddress}}/protected/
+Accept: application/json
+
+### must return 200 with Authorization header
+GET {{ProductManagerApi_HostAddress}}/protected/
+Authorization: {{ProductManagerApi_BasicAuth}}
+Accept: application/json
