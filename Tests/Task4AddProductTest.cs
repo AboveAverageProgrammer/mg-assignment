@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using ProductManagerApi.Entities;
 using ProductManagerApi.Services;
@@ -27,7 +28,7 @@ public class Task4AddProductTest : ProductServiceBase
         {
             Price = 100
         };
-        await Assert.ThrowsAsync<DbUpdateException>(() => _productService.AddProductAsync(product));
+        await Assert.ThrowsAsync<ValidationException>(() => _productService.AddProductAsync(product));
     }
 
     [Fact]

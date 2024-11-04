@@ -24,3 +24,22 @@ GET {{ProductManagerApi_ProductPrefix}}/1
 Accept: application/json
 
 ###
+
+### Create a new product
+POST {{ProductManagerApi_ProductPrefix}}/create
+Content-Type: application/json
+Authorization: {{ProductManagerApi_BasicAuth}}
+
+{
+    "name": "Product 1",
+    "price": 100
+}
+
+### Must return 400 Name field is required
+POST {{ProductManagerApi_ProductPrefix}}/create
+Content-Type: application/json
+Authorization: {{ProductManagerApi_BasicAuth}}
+
+{
+    "price": 100
+}

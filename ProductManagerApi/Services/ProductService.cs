@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using ProductManagerApi.Entities;
 using ProductManagerApi.Models;
 using ProductManagerApi.Repositories;
@@ -28,6 +29,7 @@ public class ProductService : IProductService
 
     public Task AddProductAsync(Product product)
     {
+        Validator.ValidateObject(product, new ValidationContext(product), true);
         return _productRepository.AddProductAsync(product);
     }
 }
