@@ -17,7 +17,11 @@ public class ProductManagerApiContext : DbContext
         {
             builder.HasIndex(x => x.Name).IsUnique();
             builder.Property(x => x.RowVersion)
-                .IsRowVersion();
+                .HasColumnName("xmin") // Map to PostgreSQL's xmin column
+                .HasColumnType("xid")
+                .IsConcurrencyToken(); // Mark it as a concurrency token
+            builder.Property(x => x.Available)
+                .IsRequired();
         });
     }
 }

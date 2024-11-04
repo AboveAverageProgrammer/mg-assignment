@@ -16,11 +16,14 @@ public class Product
     [Column(TypeName = "decimal(18, 2)")]
     [Required]
     public decimal Price { get; set; }
+    [Required]
     public bool Available { get; set; }
     [StringLength(150, ErrorMessage = "Description must be maximum 150 characters.")]
-    public string Description { get; set; }
+    public string? Description { get; set; }
     [Column(TypeName = "timestamp")]
-    public DateTime DateCreated { get; set; } = new();
+    public DateTime DateCreated { get; set; } = DateTime.Now;
     [Timestamp] // For concurrency check
-    public byte[] RowVersion { get; set; }
+    [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+    public uint RowVersion { get; set; } // Use uint type for xmin compatibility
+
 }

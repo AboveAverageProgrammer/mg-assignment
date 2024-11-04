@@ -1,4 +1,5 @@
 @ProductManagerApi_HostAddress = https://localhost:7067/api/v1
+@ProductManagerApi_ProductPrefix= {{ProductManagerApi_HostAddress}}/product
 @ProductManagerApi_BasicAuth=Basic YWRtaW46YWRtaW4=
 
 ### must return 200
@@ -12,4 +13,8 @@ Accept: application/json
 ### must return 200 with Authorization header
 GET {{ProductManagerApi_HostAddress}}/protected/
 Authorization: {{ProductManagerApi_BasicAuth}}
+Accept: application/json
+
+### Get all products from the database
+GET {{ProductManagerApi_ProductPrefix}}/
 Accept: application/json
