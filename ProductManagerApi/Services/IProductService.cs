@@ -5,6 +5,7 @@ namespace ProductManagerApi.Services;
 
 public interface IProductService
 {
-    IEnumerable<ProductList> GetProductListAsync();
+    IEnumerable<ProductList> GetProductList();
     Task<Product> GetProductByIdAsync(int id);
+    Task AddProductAsync(Product product);
 }

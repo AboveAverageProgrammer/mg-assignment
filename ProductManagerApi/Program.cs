@@ -1,6 +1,10 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 using ProductManagerApi;
+using ProductManagerApi.Entities;
 using ProductManagerApi.Middleware;
 using ProductManagerApi.Models;
 using ProductManagerApi.Repositories;
@@ -18,6 +22,33 @@ builder.Services.AddDbContext<ProductManagerApiContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("default"));
 });
 var app = builder.Build();
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next(); // Proceed to the next middleware
+    }
+    catch (Exception ex)
+    {
+        // Log the exception (you can replace this with a logging framework)
+        Console.WriteLine($"Unhandled exception: {ex.Message}");
+
+        // Create a ProblemDetails response for the error
+        var problemDetails = new ProblemDetails
+        {
+            Title = "Internal Server Error",
+            Status = StatusCodes.Status500InternalServerError,
+            Detail = "An unexpected error occurred. Please try again later.",
+            Instance = context.Request.Path
+        };
+
+        // Set response status code and content type
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsJsonAsync(problemDetails);
+    }
+});
+
 app.UseMiddleware<BasicAuthMiddleware>();
 
 
@@ -38,7 +69,7 @@ apiGroup.MapGet("/public",
 apiGroup.MapGet("/protected", () => Results.Ok("This is a protected endpoint that requires authentication."));
 
 productApiGroup.MapGet("/",
-    [AllowAnonymous](IProductService productService) => Results.Ok(productService.GetProductListAsync()));
+    [AllowAnonymous](IProductService productService) => Results.Ok(productService.GetProductList()));
 
 productApiGroup.MapGet("/{id}", [AllowAnonymous]async(int id,IProductService productService) =>
 {
@@ -50,10 +81,17 @@ productApiGroup.MapGet("/{id}", [AllowAnonymous]async(int id,IProductService pro
     {
         return Results.NotFound(e.Message);
     }
-    catch (Exception e)
+});
+productApiGroup.MapPost("/create", async([FromBody] Product product,IProductService productService) =>
+{
+    try
     {
-        Console.WriteLine(e);
-        return Results.BadRequest(e.ToString());
+        await productService.AddProductAsync(product);
+        return Results.Created("/api/v1/product/create", product);
+    }
+    catch (ValidationException e)
+    {
+        return Results.BadRequest(e.Message);
     }
 });
 

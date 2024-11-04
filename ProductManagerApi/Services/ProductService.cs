@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using ProductManagerApi.Entities;
 using ProductManagerApi.Models;
 using ProductManagerApi.Repositories;
@@ -11,7 +12,7 @@ public class ProductService : IProductService
     {
         _productRepository = productRepository;
     }
-    public IEnumerable<ProductList> GetProductListAsync()
+    public IEnumerable<ProductList> GetProductList()
     {
         return _productRepository.GetProductListAsync();
     }
@@ -24,5 +25,11 @@ public class ProductService : IProductService
             throw new EntityNotFoundException(nameof(Product),id);
         }
         return product;
+    }
+
+    public Task AddProductAsync(Product product)
+    {
+        Validator.ValidateObject(product, new ValidationContext(product), true);
+        return _productRepository.AddProductAsync(product);
     }
 }
