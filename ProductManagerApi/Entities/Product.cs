@@ -18,7 +18,7 @@ public class Product
     public decimal Price { get; set; }
     public bool Available { get; set; }
     [StringLength(150, ErrorMessage = "Description must be maximum 150 characters.")]
-    public string Description { get; set; }
+    public string? Description { get; set; }
     [Column(TypeName = "timestamp")]
     public DateTime DateCreated { get; set; } = new();
     [Timestamp] // For concurrency check
