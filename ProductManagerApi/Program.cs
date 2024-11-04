@@ -108,7 +108,7 @@ productApiGroup.MapPut("/update", async([FromBody] Product product,IProductServi
     try
     {
         await productService.UpdateProductAsync(product);
-        return Results.Ok(product);
+        return Results.NoContent();
     }
     catch (EntityNotFoundException e)
     {
@@ -123,5 +123,22 @@ productApiGroup.MapPut("/update", async([FromBody] Product product,IProductServi
         return Results.BadRequest(e.Message);
     }
 });
-
+productApiGroup.MapDelete("/delete/{id}",async(int id,IProductService productService) =>
+{
+    try
+    {
+            await productService.DeleteProductAsync(id); 
+            return Results.NoContent();
+    }
+    catch (EntityNotFoundException e)
+    {
+        Console.WriteLine(e);
+        return Results.NotFound(e.Message);
+    }
+    catch (DbUpdateConcurrencyException e)
+    {
+       Console.WriteLine(e);
+       return Results.Conflict("This Product has already been deleted");
+    }
+});
 app.Run();

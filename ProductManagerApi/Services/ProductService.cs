@@ -61,4 +61,11 @@ public class ProductService : IProductService
         Validator.ValidateObject(product, new ValidationContext(product), true);
         await _productRepository.UpdateProductAsync(product);
     }
+
+    public async Task DeleteProductAsync(int id)
+    {
+        await CheckProductExist(id);
+        var product = await _productRepository.GetProductByIdAsync(id);
+        await _productRepository.DeleteProductAsync(product);
+    }
 }

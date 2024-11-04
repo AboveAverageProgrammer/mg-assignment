@@ -39,4 +39,10 @@ public class ProductRepository : IProductRepository
    {
       return _context.Products.AnyAsync(x => x.Id == id);
    }
+
+   public Task DeleteProductAsync(Product product)
+   {
+      _context.Products.Remove(product);
+      return _context.SaveChangesAsync();
+   }
 }
