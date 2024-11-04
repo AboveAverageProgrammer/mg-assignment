@@ -55,5 +55,10 @@ Authorization: {{ProductManagerApi_BasicAuth}}
   "name": "Product 102",
   "price": 100
 }
+### 
+DELETE {{ProductManagerApi_ProductPrefix}}/delete/1
+Authorization: {{ProductManagerApi_BasicAuth}}
+
+
 
 
