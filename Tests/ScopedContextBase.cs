@@ -8,7 +8,8 @@ namespace Tests;
 public class ScopedContextBase : IDisposable
 {
     public readonly ProductManagerApiContext _context;
-    protected readonly string _connString;
+    public readonly ProductManagerApiContext _context2;
+    public readonly string _connString;
 
     protected ScopedContextBase()
     {
@@ -16,6 +17,7 @@ public class ScopedContextBase : IDisposable
         _connString = localConnString;
         Console.WriteLine(localConnString);
         _context = new (localContextOptions);
+        _context2 = new (localContextOptions); 
         _context.Database.EnsureCreated();
         InsertTestData();
     }

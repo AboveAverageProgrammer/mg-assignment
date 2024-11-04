@@ -9,7 +9,7 @@ public class Task2GetProductListTest : ProductServiceBase
     [Fact]
     public void Test_success()
     {
-        var result = _productService.GetProductListAsync().ToList();
+        var result = _productService.GetProductList().ToList();
         Assert.Equal(3, result.Count()); // 3 products are inserted in the database
         Assert.Equal("Product 1", result[0].Name);
         Assert.Equal("Product 2", result[1].Name);

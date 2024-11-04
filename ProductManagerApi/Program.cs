@@ -38,7 +38,7 @@ apiGroup.MapGet("/public",
 apiGroup.MapGet("/protected", () => Results.Ok("This is a protected endpoint that requires authentication."));
 
 productApiGroup.MapGet("/",
-    [AllowAnonymous](IProductService productService) => Results.Ok(productService.GetProductListAsync()));
+    [AllowAnonymous](IProductService productService) => Results.Ok(productService.GetProductList()));
 
 productApiGroup.MapGet("/{id}", [AllowAnonymous]async(int id,IProductService productService) =>
 {

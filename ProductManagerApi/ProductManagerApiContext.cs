@@ -9,6 +9,15 @@ public class ProductManagerApiContext : DbContext
     public ProductManagerApiContext(DbContextOptions<ProductManagerApiContext> options) : base(options)
     {
     }
+
+    public ProductManagerApiContext(string connString)
+    {
+        var options = new DbContextOptionsBuilder<ProductManagerApiContext>()
+            .UseNpgsql(connString)
+            .Options;
+        Database.EnsureCreated();
+    }
+
     public DbSet<Product> Products { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
