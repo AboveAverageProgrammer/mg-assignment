@@ -12,8 +12,8 @@ using ProductManagerApi;
 namespace ProductManagerApi.Migrations
 {
     [DbContext(typeof(ProductManagerApiContext))]
-    [Migration("20241103171456_first_migration")]
-    partial class first_migration
+    [Migration("20241104144707_first_reseted")]
+    partial class first_reseted
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -40,7 +40,6 @@ namespace ProductManagerApi.Migrations
                         .HasColumnType("timestamp");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
 
@@ -52,11 +51,11 @@ namespace ProductManagerApi.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18, 2)");
 
-                    b.Property<byte[]>("RowVersion")
+                    b.Property<uint>("RowVersion")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.HasKey("Id");
 

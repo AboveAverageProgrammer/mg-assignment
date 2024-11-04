@@ -20,6 +20,8 @@ public class ProductManagerApiContext : DbContext
                 .HasColumnName("xmin") // Map to PostgreSQL's xmin column
                 .HasColumnType("xid")
                 .IsConcurrencyToken(); // Mark it as a concurrency token
+            builder.Property(x => x.Available)
+                .IsRequired();
         });
     }
 }
