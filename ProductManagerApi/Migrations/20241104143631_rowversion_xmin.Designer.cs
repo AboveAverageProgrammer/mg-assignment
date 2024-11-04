@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ProductManagerApi;
@@ -11,9 +12,11 @@ using ProductManagerApi;
 namespace ProductManagerApi.Migrations
 {
     [DbContext(typeof(ProductManagerApiContext))]
-    partial class ProductManagerApiContextModelSnapshot : ModelSnapshot
+    [Migration("20241104143631_rowversion_xmin")]
+    partial class rowversion_xmin
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
