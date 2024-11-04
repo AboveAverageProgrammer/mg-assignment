@@ -1,3 +1,4 @@
+using ProductManagerApi.Entities;
 using ProductManagerApi.Models;
 using ProductManagerApi.Repositories;
 
@@ -13,5 +14,15 @@ public class ProductService : IProductService
     public IEnumerable<ProductList> GetProductListAsync()
     {
         return _productRepository.GetProductListAsync();
+    }
+
+    public async Task<Product> GetProductByIdAsync(int id)
+    {
+        var product = await _productRepository.GetProductByIdAsync(id);
+        if (product == null)
+        {
+            throw new EntityNotFoundException(nameof(Product),id);
+        }
+        return product;
     }
 }

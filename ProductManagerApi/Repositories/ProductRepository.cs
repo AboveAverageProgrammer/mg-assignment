@@ -1,3 +1,4 @@
+using ProductManagerApi.Entities;
 using ProductManagerApi.Models;
 
 namespace ProductManagerApi.Repositories;
@@ -14,5 +15,10 @@ public class ProductRepository : IProductRepository
       return _context.Products
          .Select(x => new ProductList(x.Id, x.Name, x.Available, x.Price))
          .AsEnumerable();
+   }
+
+   public async Task<Product?> GetProductByIdAsync(int id)
+   {
+      return await _context.Products.FindAsync(id);
    }
 }

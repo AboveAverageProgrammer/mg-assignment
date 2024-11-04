@@ -6,4 +6,5 @@ namespace ProductManagerApi.Repositories;
 public interface IProductRepository
 {
     IEnumerable<ProductList> GetProductListAsync();
+    Task<Product?> GetProductByIdAsync(int id);
 }
