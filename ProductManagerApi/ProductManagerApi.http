@@ -19,7 +19,7 @@ Accept: application/json
 GET {{ProductManagerApi_ProductPrefix}}/
 Accept: application/json
 
-###
+### if the product with id 1 exists, must return 200 otherwise 404
 GET {{ProductManagerApi_ProductPrefix}}/1
 Accept: application/json
 
