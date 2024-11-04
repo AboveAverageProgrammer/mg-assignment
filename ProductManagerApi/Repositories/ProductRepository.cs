@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using ProductManagerApi.Entities;
 using ProductManagerApi.Models;
 
@@ -26,5 +27,16 @@ public class ProductRepository : IProductRepository
    {
       await _context.Products.AddAsync(product);
       await _context.SaveChangesAsync();
+   }
+
+   public Task UpdateProductAsync(Product product)
+   {
+      _context.Products.Update(product);
+      return _context.SaveChangesAsync();
+   }
+
+   public Task<bool> CheckProductExistAsync(int id)
+   {
+      return _context.Products.AnyAsync(x => x.Id == id);
    }
 }

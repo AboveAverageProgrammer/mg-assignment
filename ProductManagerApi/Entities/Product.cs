@@ -15,9 +15,9 @@ public class Product
     public string Name { get; set; }
     [Column(TypeName = "decimal(18, 2)")]
     [Required]
-    public decimal Price { get; set; }
+    public decimal? Price { get; set; }
     [Required]
-    public bool Available { get; set; }
+    public bool? Available { get; set; }
     [StringLength(150, ErrorMessage = "Description must be maximum 150 characters.")]
     public string? Description { get; set; }
     [Column(TypeName = "timestamp")]

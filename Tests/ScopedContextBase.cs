@@ -7,14 +7,14 @@ namespace Tests;
 
 public class ScopedContextBase : IDisposable
 {
-    public readonly ProductManagerApiContext _context;
-    public readonly ProductManagerApiContext _context2;
-    public readonly string _connString;
+    internal readonly ProductManagerApiContext _context;
+    internal readonly ProductManagerApiContext _context2;
+    internal DbContextOptions<ProductManagerApiContext> _contextOptions;
 
     protected ScopedContextBase()
     {
         var (localContextOptions, localConnString) = CreateNewContextOptions(GetType().Name);
-        _connString = localConnString;
+        _contextOptions = localContextOptions;
         Console.WriteLine(localConnString);
         _context = new (localContextOptions);
         _context2 = new (localContextOptions); 
@@ -27,12 +27,12 @@ public class ScopedContextBase : IDisposable
     }
     private void InsertTestData()
     {
-        _context.Products.Add(new Product { Name = "Product 1", Price = 10 });
-        _context.Products.Add(new Product { Name = "Product 2", Price = 20 });
-        _context.Products.Add(new Product { Name = "Product 3", Price = 30 });
+        _context.Products.Add(new Product { Name = "Product 1", Price = 10 ,Available = true});
+        _context.Products.Add(new Product { Name = "Product 2", Price = 20 ,Available = false});
+        _context.Products.Add(new Product { Name = "Product 3", Price = 30 ,Available = false});
         _context.SaveChanges();
     }
-    private static (DbContextOptions<ProductManagerApiContext> contextOptions, string connString) CreateNewContextOptions(
+    internal static (DbContextOptions<ProductManagerApiContext> contextOptions, string connString) CreateNewContextOptions(
         string testName)
     {
         var dbSuffix = $"{testName}_{Guid.NewGuid()}";

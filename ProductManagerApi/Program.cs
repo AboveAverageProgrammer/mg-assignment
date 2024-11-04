@@ -89,6 +89,35 @@ productApiGroup.MapPost("/create", async([FromBody] Product product,IProductServ
         await productService.AddProductAsync(product);
         return Results.Created("/api/v1/product/create", product);
     }
+    catch (DuplicateIdException e)
+    {
+        return Results.BadRequest(e.Message);
+    }
+    catch (DbUpdateException)
+    {
+        return Results.BadRequest("Product Name already exists");
+    }
+    catch (ValidationException e)
+    {
+        return Results.BadRequest(e.Message);
+    }
+});
+
+productApiGroup.MapPut("/update", async([FromBody] Product product,IProductService productService) =>
+{
+    try
+    {
+        await productService.UpdateProductAsync(product);
+        return Results.Ok(product);
+    }
+    catch (EntityNotFoundException e)
+    {
+        return Results.NotFound(e.Message);
+    }
+    catch (DbUpdateConcurrencyException)
+    {
+        return Results.Conflict("The product has been updated by another user");
+    }
     catch (ValidationException e)
     {
         return Results.BadRequest(e.Message);
