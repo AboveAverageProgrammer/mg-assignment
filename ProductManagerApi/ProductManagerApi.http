@@ -41,17 +41,19 @@ Content-Type: application/json
 Authorization: {{ProductManagerApi_BasicAuth}}
 
 {
-    "price": 100
+  "price": 100,
+  "available": true
 }
 
-### 
+### return 200
 PUT {{ProductManagerApi_ProductPrefix}}/update
 Content-Type: application/json
 Authorization: {{ProductManagerApi_BasicAuth}}
 
 {
   "id": 1,
-  "name": "Product 102"
+  "name": "Product 102",
+  "price": 100
 }
 
 

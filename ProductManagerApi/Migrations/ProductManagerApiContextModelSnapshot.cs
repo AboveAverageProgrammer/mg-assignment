@@ -30,7 +30,8 @@ namespace ProductManagerApi.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("Available")
+                    b.Property<bool?>("Available")
+                        .IsRequired()
                         .HasColumnType("boolean");
 
                     b.Property<DateTime>("DateCreated")
@@ -45,7 +46,8 @@ namespace ProductManagerApi.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<decimal>("Price")
+                    b.Property<decimal?>("Price")
+                        .IsRequired()
                         .HasColumnType("decimal(18, 2)");
 
                     b.Property<uint>("RowVersion")

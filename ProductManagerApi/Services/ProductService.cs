@@ -52,10 +52,10 @@ public class ProductService : IProductService
             {
                 throw new EntityNotFoundException(nameof(Product), product.Id);
             }
-            foundProduct.Price = product.Price;
-            foundProduct.Available = product.Available;
+            foundProduct.Price = product.Price ?? foundProduct.Price;
+            foundProduct.Available = product.Available ?? foundProduct.Available;
             foundProduct.Name = product.Name;
-            foundProduct.Description = product.Description;
+            foundProduct.Description = product.Description ?? foundProduct.Description;
             product = foundProduct;
         }
         Validator.ValidateObject(product, new ValidationContext(product), true);
