@@ -32,4 +32,9 @@ public class ProductService : IProductService
         Validator.ValidateObject(product, new ValidationContext(product), true);
         return _productRepository.AddProductAsync(product);
     }
+    public Task UpdateProductAsync(Product product)
+    {
+        Validator.ValidateObject(product, new ValidationContext(product), true);
+        return _productRepository.UpdateProductAsync(product);
+    }
 }

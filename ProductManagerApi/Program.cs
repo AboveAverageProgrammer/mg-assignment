@@ -89,6 +89,10 @@ productApiGroup.MapPost("/create", async([FromBody] Product product,IProductServ
         await productService.AddProductAsync(product);
         return Results.Created("/api/v1/product/create", product);
     }
+    catch (DbUpdateException)
+    {
+        return Results.BadRequest("Product Name already exists");
+    }
     catch (ValidationException e)
     {
         return Results.BadRequest(e.Message);
