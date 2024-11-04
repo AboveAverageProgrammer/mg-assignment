@@ -15,7 +15,8 @@ public class Task4AddProductTest : ProductServiceBase
         var product = new Product
         {
             Name = "Product 4",
-            Price = 100
+            Price = 100,
+            Available = true
         };
         await _productService.AddProductAsync(product);
         var products = _productService.GetProductList();
@@ -38,7 +39,8 @@ public class Task4AddProductTest : ProductServiceBase
         var product = new Product
         {
             Name = "Product 3",
-            Price = 100
+            Price = 100,
+            Available = true
         };
         await Assert.ThrowsAsync<DbUpdateException>(() => _productService.AddProductAsync(product));
     }
@@ -60,12 +62,14 @@ public class Task4AddProductTest : ProductServiceBase
         var product1 = new Product
         {
             Name = "Product 5",
-            Price = 100
+            Price = 100,
+            Available = true,
         };
         var product2 = new Product
         {
             Name = "Product 6",
-            Price = 100
+            Price = 100,
+            Available = true
         };
         var _productService2 = CreateNewProducService();
         await Task.WhenAll(_productService.AddProductAsync(product1), _productService2.AddProductAsync(product2));
@@ -80,12 +84,14 @@ public class Task4AddProductTest : ProductServiceBase
         var product1 = new Product
         {
             Name = "Product 5",
-            Price = 100
+            Price = 100,
+            Available = true
         };
         var product2 = new Product
         {
             Name = "Product 5",
-            Price = 200
+            Price = 200,
+            Available = true
         };
         var _productService2 = CreateNewProducService();
         var addAll = Task.WhenAll(_productService.AddProductAsync(product1),

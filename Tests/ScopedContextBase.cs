@@ -27,7 +27,7 @@ public class ScopedContextBase : IDisposable
     }
     private void InsertTestData()
     {
-        _context.Products.Add(new Product { Name = "Product 1", Price = 10 ,Available = true});
+        _context.Products.Add(new Product { Name = "Product 1", Price = 10 ,Available = false});
         _context.Products.Add(new Product { Name = "Product 2", Price = 20 ,Available = false});
         _context.Products.Add(new Product { Name = "Product 3", Price = 30 ,Available = false});
         _context.SaveChanges();

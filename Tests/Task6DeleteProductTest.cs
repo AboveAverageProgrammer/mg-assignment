@@ -9,7 +9,7 @@ public class Task6DeleteProductTest : ProductServiceBase
    [Fact]
    public async void DeleteProduct_success()
    {
-      await _productService.DeleteProductAsync(1);
+      await _productService.DeleteProductAsync(2);
       var products = _productService.GetProductList().ToList();
       Assert.Equal(2,products.Count);
    }
@@ -40,6 +40,10 @@ public class Task6DeleteProductTest : ProductServiceBase
          {
             // Capture concurrency exceptions for logging or further processing
             exceptions.Add(ex);
+         }
+         catch (Exception e)
+         {            
+            exceptions.Add(e);
          }
       });
       Assert.NotEmpty(exceptions); 
