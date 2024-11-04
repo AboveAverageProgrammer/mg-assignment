@@ -31,8 +31,8 @@ Content-Type: application/json
 Authorization: {{ProductManagerApi_BasicAuth}}
 
 {
-    "name": "Product 1",
-    "price": 100
+  "name": "Product 11",
+  "price": 100
 }
 
 ### Must return 400 Name field is required
@@ -43,3 +43,15 @@ Authorization: {{ProductManagerApi_BasicAuth}}
 {
     "price": 100
 }
+
+### 
+PUT {{ProductManagerApi_ProductPrefix}}/update
+Content-Type: application/json
+Authorization: {{ProductManagerApi_BasicAuth}}
+
+{
+  "id": 1,
+  "name": "Product 102"
+}
+
+

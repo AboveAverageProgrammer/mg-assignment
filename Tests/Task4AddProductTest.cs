@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using ProductManagerApi.Entities;
+using ProductManagerApi.Models;
 using ProductManagerApi.Services;
 
 namespace Tests;
@@ -40,6 +41,17 @@ public class Task4AddProductTest : ProductServiceBase
             Price = 100
         };
         await Assert.ThrowsAsync<DbUpdateException>(() => _productService.AddProductAsync(product));
+    }
+    [Fact]
+    public async void AddDuplicateIdProduct_fail()
+    {
+        var product = new Product
+        {
+            Id = 1,
+            Name = "Product 3",
+            Price = 100
+        };
+        await Assert.ThrowsAsync<DuplicateIdException>(() => _productService.AddProductAsync(product));
     }
 
     [Fact]

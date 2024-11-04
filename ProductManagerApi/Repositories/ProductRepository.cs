@@ -34,4 +34,9 @@ public class ProductRepository : IProductRepository
       _context.Products.Update(product);
       return _context.SaveChangesAsync();
    }
+
+   public Task<bool> CheckProductExistAsync(int id)
+   {
+      return _context.Products.AnyAsync(x => x.Id == id);
+   }
 }
