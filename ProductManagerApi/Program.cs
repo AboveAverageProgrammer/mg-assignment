@@ -1,39 +1,91 @@
-using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Authorization;
+using Asp.Versioning;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using ProductManagerApi;
-using ProductManagerApi.Entities;
+using ProductManagerApi.Infrastructure;
 using ProductManagerApi.Middleware;
-using ProductManagerApi.Models;
 using ProductManagerApi.Repositories;
 using ProductManagerApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddTransient(typeof(IProductRepository), typeof(ProductRepository));
-builder.Services.AddTransient(typeof(IProductService), typeof(ProductService));
+builder.Services.AddSwaggerGen(options =>
+{
+    // Add Basic Auth definition
+    options.AddSecurityDefinition("basic", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "basic",
+        In = ParameterLocation.Header,
+        Description = "Basic Authentication header. Example: \"Basic {base64-encoded-username:password}\""
+    });
+
+    // Add global requirement for Basic Auth
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "basic"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+
+    options.OperationFilter<IfMatchHeaderOperationFilter>();
+});
+builder.Services.AddScoped(typeof(IProductRepository), typeof(ProductRepository));
+builder.Services.AddScoped(typeof(IProductService), typeof(ProductService));
 builder.Services.AddDbContext<ProductManagerApiContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("default"));
 });
+
+builder.Services.AddAuthentication("Basic")
+    .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("Basic", _ => { });
+
+builder.Services.AddSingleton<IProductUpdatePipe>(_ =>
+    new ProductUpdatePipe(new ProductUpdatePipeOptions
+    {
+        DegreeOfParallelism = Environment.ProcessorCount,
+        BoundedCapacity = 2048,
+        MaxRetries = 1,
+        RetryBaseDelay = TimeSpan.FromMilliseconds(150),
+        IsTransient = ex => ex is TimeoutException
+                         || ex is Npgsql.NpgsqlException { IsTransient: true }
+                         || ex is Microsoft.EntityFrameworkCore.DbUpdateException
+    }));
+
+builder.Services.AddControllers();
+
+var apiVersion = builder.Configuration["ApiVersion"] ?? "1";
+
+
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new ApiVersion(int.Parse(apiVersion), 0);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+});
+
 var app = builder.Build();
 app.Use(async (context, next) =>
 {
     try
     {
-        await next(); // Proceed to the next middleware
+        await next();
     }
     catch (Exception ex)
     {
-        // Log the exception (you can replace this with a logging framework)
         Console.WriteLine($"Unhandled exception: {ex.Message}");
 
-        // Create a ProblemDetails response for the error
         var problemDetails = new ProblemDetails
         {
             Title = "Internal Server Error",
@@ -42,103 +94,29 @@ app.Use(async (context, next) =>
             Instance = context.Request.Path
         };
 
-        // Set response status code and content type
         context.Response.StatusCode = StatusCodes.Status500InternalServerError;
         context.Response.ContentType = "application/json";
         await context.Response.WriteAsJsonAsync(problemDetails);
     }
 });
 
-app.UseMiddleware<BasicAuthMiddleware>();
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ProductManagerApiContext>();
+    db.Database.Migrate();
+}
 
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-var apiGroup = app.MapGroup("/api/v1");
-var productApiGroup = apiGroup.MapGroup("/product");
-
 app.UseHttpsRedirection();
-apiGroup.MapGet("/public",
-    [AllowAnonymous]() => Results.Ok("This is a public endpoint that does not require authentication."));
+app.UseAuthentication();
+app.UseAuthorization();
 
-apiGroup.MapGet("/protected", () => Results.Ok("This is a protected endpoint that requires authentication."));
+app.MapControllers();
 
-productApiGroup.MapGet("/",
-    [AllowAnonymous](IProductService productService) => Results.Ok(productService.GetProductList()));
-
-productApiGroup.MapGet("/{id}", [AllowAnonymous]async(int id,IProductService productService) =>
-{
-    try
-    {
-        return Results.Ok(await productService.GetProductByIdAsync(id));
-    }
-    catch (EntityNotFoundException e)
-    {
-        return Results.NotFound(e.Message);
-    }
-});
-productApiGroup.MapPost("/create", async([FromBody] Product product,IProductService productService) =>
-{
-    try
-    {
-        await productService.AddProductAsync(product);
-        return Results.Created("/api/v1/product/create", product);
-    }
-    catch (DuplicateIdException e)
-    {
-        return Results.BadRequest(e.Message);
-    }
-    catch (DbUpdateException)
-    {
-        return Results.BadRequest("Product Name already exists");
-    }
-    catch (ValidationException e)
-    {
-        return Results.BadRequest(e.Message);
-    }
-});
-
-productApiGroup.MapPut("/update", async([FromBody] Product product,IProductService productService) =>
-{
-    try
-    {
-        await productService.UpdateProductAsync(product);
-        return Results.NoContent();
-    }
-    catch (EntityNotFoundException e)
-    {
-        return Results.NotFound(e.Message);
-    }
-    catch (DbUpdateConcurrencyException)
-    {
-        return Results.Conflict("The product has been updated by another user");
-    }
-    catch (ValidationException e)
-    {
-        return Results.BadRequest(e.Message);
-    }
-});
-productApiGroup.MapDelete("/delete/{id}",async(int id,IProductService productService) =>
-{
-    try
-    {
-            await productService.DeleteProductAsync(id); 
-            return Results.NoContent();
-    }
-    catch (EntityNotFoundException e)
-    {
-        Console.WriteLine(e);
-        return Results.NotFound(e.Message);
-    }
-    catch (DbUpdateConcurrencyException e)
-    {
-       Console.WriteLine(e);
-       return Results.Conflict("This Product has already been deleted");
-    }
-});
 app.Run();

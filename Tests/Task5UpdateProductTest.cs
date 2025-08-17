@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
-using ProductManagerApi.Entities;
 
 namespace Tests;
 

@@ -4,7 +4,7 @@
 
 ### must return 200
 GET {{ProductManagerApi_HostAddress}}/public/
-Accept: application/json
+Accept: application/jsona
 
 ### must return 401
 GET {{ProductManagerApi_HostAddress}}/protected/

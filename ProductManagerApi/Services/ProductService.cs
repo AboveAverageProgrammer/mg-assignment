@@ -1,71 +1,68 @@
-using System.ComponentModel.DataAnnotations;
+using ProductManagerApi.Dtos;
 using ProductManagerApi.Entities;
+using ProductManagerApi.Infrastructure;
 using ProductManagerApi.Models;
 using ProductManagerApi.Repositories;
 
 namespace ProductManagerApi.Services;
 
-public class ProductService : IProductService
+public sealed class ProductService : IProductService
 {
-    private readonly IProductRepository _productRepository;
-    public ProductService(IProductRepository productRepository)
+    private readonly IProductRepository _repo;
+    private readonly IProductUpdatePipe _pipe;
+    private readonly IServiceScopeFactory _scopeFactory;
+
+    public ProductService(IProductRepository repo, IProductUpdatePipe pipe, IServiceScopeFactory serviceScopeFactory)
     {
-        _productRepository = productRepository;
-    }
-    public IEnumerable<ProductList> GetProductList()
-    {
-        return _productRepository.GetProductListAsync();
-    }
-    private async Task CheckProductExist(int id)
-    {
-        if (!await _productRepository.CheckProductExistAsync(id))
-        {
-            throw new EntityNotFoundException(nameof(Product),id);
-        }
-    }
-    public async Task<Product> GetProductByIdAsync(int id)
-    {
-        var product = await _productRepository.GetProductByIdAsync(id);
-        if (product == null)
-        {
-            throw new EntityNotFoundException(nameof(Product),id);
-        }
-        return product;
+        _repo = repo;
+        _pipe = pipe;
+        _scopeFactory = serviceScopeFactory;
     }
 
-    public async Task AddProductAsync(Product product)
+    public Task<List<ProductListItem>> ListAsync(int limit, int offset, CancellationToken ct)
     {
-        var alreadyExists = await _productRepository.CheckProductExistAsync(product.Id);
-        if (alreadyExists)
-        {
-            throw new DuplicateIdException(nameof(product), product.Id);
-        }
-        Validator.ValidateObject(product, new ValidationContext(product), true);
-        await _productRepository.AddProductAsync(product);
-    }
-    public async Task UpdateProductAsync(Product product)
-    {
-        if (product.RowVersion == 0)
-        {
-            var foundProduct = await _productRepository.GetProductByIdAsync(product.Id);
-            if (foundProduct == null)
-            {
-                throw new EntityNotFoundException(nameof(Product), product.Id);
-            }
-            foundProduct.Price = product.Price ?? foundProduct.Price;
-            foundProduct.Available = product.Available ?? foundProduct.Available;
-            foundProduct.Name = product.Name;
-            foundProduct.Description = product.Description ?? foundProduct.Description;
-            product = foundProduct;
-        }
-        Validator.ValidateObject(product, new ValidationContext(product), true);
-        await _productRepository.UpdateProductAsync(product);
+        return _repo.ListAsync(limit, offset, ct);
     }
 
-    public async Task DeleteProductAsync(int id)
+    public Task<Product?> GetAsync(int id, CancellationToken ct)
     {
-        await CheckProductExist(id);
-        var product = await _productRepository.GetProductByIdAsync(id);
-        await _productRepository.DeleteProductAsync(product);
+        return _repo.GetAsync(id, ct);
+    }
+
+    public Task<CreateResult> AddAsync(CreateProduct dto, CancellationToken ct)
+    {
+        return _repo.AddAsync(dto, ct);
+    }
+
+    public async Task<UpdateResult> UpdateAsync(int id, UpdateProduct dto, uint expectedVersion, CancellationToken ct)
+    {
+        var code = UpdateResultCode.PreconditionFailed;
+        uint? newVersion = null;
+
+        var accepted = await _pipe.TryRunForProduct(id, async innerCt =>
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var repo = scope.ServiceProvider.GetRequiredService<IProductRepository>();
+
+            var updateResult = await repo.UpdateAsync(id, expectedVersion, dto, innerCt);
+            code = updateResult.Code;
+            newVersion = updateResult.NewVersion;
+        }, timeout: TimeSpan.FromMilliseconds(250), ct);
+
+        if (!accepted) return new UpdateResult(UpdateResultCode.PreconditionFailed, null); 
+        return new UpdateResult(code, newVersion);
+    }
+
+    public async Task<DeleteResult> DeleteAsync(int id, uint expectedVersion, CancellationToken ct)
+    {
+        DeleteResult code = DeleteResult.PreconditionFailed;
+
+        var accepted = await _pipe.TryRunForProduct(id, async innerCt =>
+        {
+            code = await _repo.DeleteAsync(id, expectedVersion, innerCt);
+        }, timeout: TimeSpan.FromMilliseconds(250), ct);
+
+        if (!accepted) return DeleteResult.PreconditionFailed; 
+        return code;
     }
 }
