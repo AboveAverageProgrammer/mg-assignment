@@ -83,10 +83,6 @@ public class ProductRepository : IProductRepository
         {
             return new UpdateResult(UpdateResultCode.DuplicateName, null);
         }
-        catch (Exception e)
-        {
-            return new UpdateResult(UpdateResultCode.NotFound, null);
-        }
     }
 
     public async Task<DeleteResult> DeleteAsync(int id, uint expectedVersion, CancellationToken ct)
@@ -96,11 +92,11 @@ public class ProductRepository : IProductRepository
              WHERE id = @id
                 AND xmin = @xmin 
              RETURNING id;
-        ", 
+        ",
         new NpgsqlParameter<int>("id", id),
-        new NpgsqlParameter<uint>("xmin", expectedVersion) 
-        { 
-            NpgsqlDbType =  NpgsqlDbType.Xid 
+        new NpgsqlParameter<uint>("xmin", expectedVersion)
+        {
+            NpgsqlDbType = NpgsqlDbType.Xid
         }).ToListAsync(ct);
 
         if (rows.Count == 1)
