@@ -7,33 +7,33 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ProductManagerApi.Migrations
 {
     /// <inheritdoc />
-    public partial class first_reseted : Migration
+    public partial class first : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Products",
+                name: "products",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    Price = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    Available = table.Column<bool>(type: "boolean", nullable: false),
-                    Description = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: true),
-                    DateCreated = table.Column<DateTime>(type: "timestamp", nullable: false),
+                    name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    price = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    available = table.Column<bool>(type: "boolean", nullable: false),
+                    description = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: true),
+                    date_created = table.Column<DateTime>(type: "timestamp", nullable: false),
                     xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Products", x => x.Id);
+                    table.PrimaryKey("PK_products", x => x.id);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Products_Name",
-                table: "Products",
-                column: "Name",
+                name: "IX_products_name",
+                table: "products",
+                column: "name",
                 unique: true);
         }
 
@@ -41,7 +41,7 @@ namespace ProductManagerApi.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Products");
+                name: "products");
         }
     }
 }

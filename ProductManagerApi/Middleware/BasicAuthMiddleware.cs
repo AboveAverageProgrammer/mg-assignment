@@ -1,56 +1,55 @@
-using System.Net;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.Options;
+using System.Net.Http.Headers;
+using System.Security.Claims;
 using System.Text;
-using Microsoft.AspNetCore.Authorization;
 
 namespace ProductManagerApi.Middleware;
 
-public class BasicAuthMiddleware(RequestDelegate next, IConfiguration configuration)
+public sealed class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
-    public async Task InvokeAsync(HttpContext context)
+    public BasicAuthenticationHandler(
+        IOptionsMonitor<AuthenticationSchemeOptions> options,
+        ILoggerFactory logger,
+        System.Text.Encodings.Web.UrlEncoder encoder,
+        ISystemClock clock) : base(options, logger, encoder, clock) { }
+
+    protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        // Check if the current endpoint requires authorization
-        var endpoint = context.GetEndpoint();
-        if (endpoint?.Metadata.GetMetadata<IAllowAnonymous>() != null || context.Request.Path.StartsWithSegments("/swagger"))
+        if (!Request.Headers.ContainsKey("Authorization"))
         {
-            // Allow anonymous access; proceed to the next middleware
-            await next(context);
-            return;
+            return Task.FromResult(AuthenticateResult.NoResult());
         }
 
-        // Check for Authorization header
-        if (!context.Request.Headers.TryGetValue("Authorization", out var authHeader))
+        try
         {
-            context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-            await context.Response.WriteAsync("Unauthorized");
-            return;
-        }
-
-        // Validate the Basic Auth credentials
-        if (authHeader.Count > 0 && authHeader[0]!.StartsWith("Basic "))
-        {
-            var encodedCredentials = authHeader[0]?.Substring("Basic ".Length).Trim();
-            var credentials = Encoding.UTF8.GetString(Convert.FromBase64String(encodedCredentials)).Split(':');
-
-            if (credentials.Length == 2)
+            var header = AuthenticationHeaderValue.Parse(Request.Headers["Authorization"]!);
+            if (!"Basic".Equals(header.Scheme, StringComparison.OrdinalIgnoreCase))
             {
-                var username = credentials[0];
-                var password = credentials[1];
-
-                // Get expected credentials from configuration
-                var expectedUsername = configuration["Auth:Username"] ?? "admin";
-                var expectedPassword = configuration["Auth:Password"] ?? "admin";
-
-                // Validate credentials
-                if (username == expectedUsername && password == expectedPassword)
-                {
-                    await next(context); // Proceed to the next middleware
-                    return;
-                }
+                return Task.FromResult(AuthenticateResult.NoResult());
             }
+
+            var credentialBytes = Convert.FromBase64String(header.Parameter ?? "");
+            var credentials = Encoding.UTF8.GetString(credentialBytes).Split(':', 2);
+            if (credentials.Length != 2)
+                return Task.FromResult(AuthenticateResult.Fail("Invalid Basic header."));
+
+            var username = Context.RequestServices.GetRequiredService<IConfiguration>()["Auth:Username"];
+            var password = Context.RequestServices.GetRequiredService<IConfiguration>()["Auth:Password"];
+
+            if (credentials[0] == username && credentials[1] == password)
+            {
+                var claims = new[] { new Claim(ClaimTypes.Name, credentials[0]) };
+                var identity = new ClaimsIdentity(claims, Scheme.Name);
+                var principal = new ClaimsPrincipal(identity);
+                var ticket = new AuthenticationTicket(principal, Scheme.Name);
+                return Task.FromResult(AuthenticateResult.Success(ticket));
+            }
+            return Task.FromResult(AuthenticateResult.Fail("Invalid credentials."));
         }
-        
-        // If we reach here, authentication failed
-        context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-        await context.Response.WriteAsync("Unauthorized");
+        catch (FormatException)
+        {
+            return Task.FromResult(AuthenticateResult.Fail("Invalid Authorization header."));
+        }
     }
 }

@@ -12,8 +12,8 @@ using ProductManagerApi;
 namespace ProductManagerApi.Migrations
 {
     [DbContext(typeof(ProductManagerApiContext))]
-    [Migration("20241104190723_price_nullable")]
-    partial class price_nullable
+    [Migration("20250817205305_first")]
+    partial class first
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -29,31 +29,35 @@ namespace ProductManagerApi.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<bool?>("Available")
-                        .IsRequired()
-                        .HasColumnType("boolean");
+                    b.Property<bool>("Available")
+                        .HasColumnType("boolean")
+                        .HasColumnName("available");
 
                     b.Property<DateTime>("DateCreated")
-                        .HasColumnType("timestamp");
+                        .HasColumnType("timestamp")
+                        .HasColumnName("date_created");
 
                     b.Property<string>("Description")
                         .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("description");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("name");
 
-                    b.Property<decimal?>("Price")
-                        .IsRequired()
-                        .HasColumnType("decimal(18, 2)");
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("price");
 
-                    b.Property<uint>("RowVersion")
+                    b.Property<uint>("Xmin")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("xid")
@@ -64,7 +68,7 @@ namespace ProductManagerApi.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Products");
+                    b.ToTable("products");
                 });
 #pragma warning restore 612, 618
         }

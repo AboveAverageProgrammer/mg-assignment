@@ -1,3 +1,4 @@
+using ProductManagerApi.Dtos;
 using ProductManagerApi.Entities;
 using ProductManagerApi.Models;
 
@@ -5,10 +6,9 @@ namespace ProductManagerApi.Repositories;
 
 public interface IProductRepository
 {
-    IEnumerable<ProductList> GetProductListAsync();
-    Task<Product?> GetProductByIdAsync(int id);
-    Task AddProductAsync(Product product);
-    Task UpdateProductAsync(Product product);
-    Task<bool> CheckProductExistAsync(int id);
-    Task DeleteProductAsync(Product product);
+    Task<List<ProductListItem>> ListAsync(int limit, int offset, CancellationToken cancellationToken);
+    Task<Product?> GetAsync(int id, CancellationToken cancellationToken);
+    Task<CreateResult> AddAsync(CreateProduct dto, CancellationToken cancellationToken);
+    Task<UpdateResult> UpdateAsync(int id, uint expectedVersion, UpdateProduct dto, CancellationToken cancellationToken);
+    Task<DeleteResult> DeleteAsync(int id, uint expectedVersion, CancellationToken cancellationToken);
 }
